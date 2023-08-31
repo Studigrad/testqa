@@ -1,16 +1,21 @@
+const jwt = require('jsonwebtoken');
 
-const isAuthenticated = (req, res, next) => {
-    // Assuming you have a session or authentication mechanism
-    // Check if the user is authenticated
-    if (userIsAuthenticated) {
-        // User is authenticated, proceed to the next middleware/route handler
-        next();
-    } else {
-        // User is not authenticated, send an unauthorized response
-        res.status(401).send("Unauthorized");
-    }
-};
+const secretKey = 'secretkey';
 
+function authenticateToken(req, res, next) {
+  const authHeader = req.header['Authorization']
+  
+  if (authHeader == null) return res.sendStatus(401)
 
+  jwt.verify(authHeader, secretKey, (err, user) => {
+    console.log(err)
 
-module.exports = isAuthenticated;
+    if (err) return res.sendStatus(403)
+
+    req.user = user
+    res.render('protected')
+    next()
+  })
+}
+
+module.exports = authenticateToken

@@ -4,6 +4,7 @@ const PORT = 3000
 const app = express()
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
+const session = require('express-session');
 const store = require('store')
 const isAuthenticated = require('./middlewares/isAuthenticated');
 const authenticateJWT = require('./middlewares/checkForToken')
@@ -12,7 +13,8 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'))
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')))
-
+// Use body-parser middleware for form data
+app.use(bodyParser.urlencoded({ extended: false }));
 
 const secretKey = 'secretkey';
 
@@ -23,32 +25,51 @@ const users = [
 ];
 
 
-app.get('/',(req,res)=>{
-    res.render('home')
-})
-app.get('/login',(req,res)=>{
-    res.render('login')
-})
-// app.post('/login',(req,res)=>{
-//     const {username,password}= req.body;
+// Set up sessions
+app.use(session({
+  secret: secretKey,
+  resave: true,
+  saveUninitialized: true
+}));
 
-//     const user = users.find(u => u.username === username && u.password === password);
+// Login route
+app.get('/login', (req, res) => {
+  res.render('login');
+});
 
-//     if (!user) return res.status(401).json({ message: 'Authentication failed.' });
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  const user = users.find(u => u.username === username && u.password === password);
 
-//     const token = jwt.sign({ username: user.username, id: user.id }, secretKey);
-//     res.set('Authorization', {token}).render('protected')
-    
-// })
+  if (user) {
+    req.session.loggedIn = true;
+    res.redirect('/protected');
+  } else {
+    res.redirect('/login');
+  }
+  
+});
 
-// app.get('/protected',authenticateJWT, (req, res) => {
-//     res.render('protected')
-// });
+// Protected route
+app.get('/protected', (req, res) => {
+  if (req.session.loggedIn) {
+    res.render('protected');
+  } else {
+    res.redirect('/login');
+  }
+});
 
-// app.get('/logout', (req, res) => {
-//     res.json({ message: 'Logged out successfully.' });
-// });
+// Logout route
+app.get('/logout', (req, res) => {
+  req.session.loggedIn = false;
+  res.redirect('/login');
+});
 
-app.listen(PORT,()=>{
-    console.log("Listen")
-})
+// Public route
+app.get('/public', (req, res) => {
+  res.render('public')
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});

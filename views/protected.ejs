@@ -1,33 +1,22 @@
-<!-- protected.html -->
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Protected</title>
+  <title>Protected</title>
 </head>
 <body>
-    <h1>Protected</h1>
-    <button id="logout-button">Logout</button>
-
-    <script>
-        document.getElementById("logout-button").addEventListener("click", function() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                var xhr = new XMLHttpRequest();
-                xhr.open("GET", "/logout", true);
-                xhr.setRequestHeader("Authorization", token);
-                
-                xhr.onload = function() {
-                    if (xhr.status === 200) {
-                        localStorage.removeItem('token');
-                        window.location.href = "/login";
-                    } else {
-                        console.log("Logout request failed");
-                    }
-                };
-                
-                xhr.send();
-            }
-        });
-    </script>
+  <h1>Protected</h1>
+  <button id="logoutButton">Logout</button>
+  <script>
+    document.getElementById('logoutButton').addEventListener('click', () => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', '/logout', true);
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          window.location.href = '/login';
+        }
+      };
+      xhr.send();
+    });
+  </script>
 </body>
 </html>
